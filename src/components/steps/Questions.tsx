@@ -1,14 +1,10 @@
 import { useState } from 'react';
 import { useFormContext } from '../../context/FormContext';
-import { generateMoreQuestions } from '../../services/api';
 import { StepNavigation } from '../ui/StepNavigation';
 
 export function Questions() {
   const { state, dispatch } = useFormContext();
   const [currentQ, setCurrentQ] = useState(0);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [noMoreQuestions, setNoMoreQuestions] = useState(false);
-
   const questions = state.data.aiQuestions;
   const question = questions[currentQ];
   const answer = question ? state.data.answers[question.id] : undefined;
@@ -39,27 +35,6 @@ export function Questions() {
       setCurrentQ(currentQ - 1);
     } else {
       dispatch({ type: 'SET_SCREEN', payload: 'intro' });
-    }
-  }
-
-  async function handleGetMoreQuestions() {
-    setLoadingMore(true);
-    try {
-      const more = await generateMoreQuestions(
-        state.data.intro,
-        questions,
-        state.data.answers
-      );
-      if (more.length === 0) {
-        setNoMoreQuestions(true);
-      } else {
-        dispatch({ type: 'ADD_MORE_QUESTIONS', payload: more });
-        setCurrentQ(questions.length); // jump to first new question
-      }
-    } catch (err) {
-      console.error('Failed to get more questions:', err);
-    } finally {
-      setLoadingMore(false);
     }
   }
 
@@ -204,31 +179,15 @@ export function Questions() {
         )}
       </div>
 
-      {/* Show results / more questions options when all answered */}
+      {/* Show results button when all answered */}
       {allAnswered && (
-        <div className="space-y-3 mb-6">
+        <div className="mb-6">
           <button
             onClick={handleSeeResults}
             className="w-full px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors"
           >
             See my job suggestions
           </button>
-          {!noMoreQuestions && (
-            <button
-              onClick={handleGetMoreQuestions}
-              disabled={loadingMore}
-              className="w-full px-6 py-3 border-2 border-stone-200 text-stone-600 font-medium rounded-lg hover:border-stone-300 transition-colors disabled:opacity-40"
-            >
-              {loadingMore
-                ? 'Getting more questions...'
-                : 'Answer more for better suggestions'}
-            </button>
-          )}
-          {noMoreQuestions && (
-            <p className="text-sm text-stone-400 text-center">
-              We have enough to give you great suggestions!
-            </p>
-          )}
         </div>
       )}
 

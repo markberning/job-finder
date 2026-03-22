@@ -152,6 +152,46 @@ export async function generateMoreQuestions(
   return parseJSON<AIQuestion[]>(response);
 }
 
+const ADJACENT_SYSTEM_PROMPT = `You are a career advisor helping an entry-level job seeker explore careers ADJACENT to their primary interest.
+
+They already received suggestions for their main career area. Now suggest 8-12 job titles in RELATED but DIFFERENT fields that leverage the same skills, education, or interests.
+
+For example:
+- Someone interested in criminal justice might also fit roles in social work, compliance, insurance investigation, or corporate security
+- Someone interested in pastry arts might also fit roles in food science, product development, catering management, or food photography
+- Someone interested in skilled trades might also fit roles in facilities management, building inspection, or technical sales
+
+Return ONLY valid JSON in this exact format:
+[
+  {
+    "title": "Specific Job Title",
+    "whyFit": "Brief explanation connecting their background to this adjacent field",
+    "isUnexpected": true
+  }
+]
+
+Guidelines:
+- ALL titles should be marked isUnexpected: true (these are all adjacent/surprising)
+- Use actual job titles that appear on Indeed/LinkedIn
+- These should be genuinely DIFFERENT fields, not just different titles in the same field
+- Be creative — this is where you add the most value
+- Be encouraging and explain the connection clearly`;
+
+export async function generateAdjacentResults(
+  intro: IntroData,
+  questions: AIQuestion[],
+  answers: QuizAnswers,
+  previousTitles: string[]
+): Promise<AIJobSuggestion[]> {
+  const profile = buildProfileSummary(intro);
+  const answersSummary = buildAnswersSummary(questions, answers);
+  const response = await callAPI(
+    ADJACENT_SYSTEM_PROMPT,
+    `Full profile:\n${profile}\n\nQuiz answers:\n${answersSummary}\n\nThey already received these suggestions (do NOT repeat any of these):\n${previousTitles.join(', ')}\n\nNow suggest jobs in ADJACENT careers they might not have considered.`
+  );
+  return parseJSON<AIJobSuggestion[]>(response);
+}
+
 export async function generateResults(
   intro: IntroData,
   questions: AIQuestion[],
