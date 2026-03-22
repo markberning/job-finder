@@ -46,14 +46,12 @@ export function SavedJobs() {
         );
         added++;
       }
-      // Restore last report if included
-      if (lastReport) {
+      // Only restore last report if user doesn't already have one
+      if (lastReport && !state.lastReport) {
         dispatch({ type: 'UPDATE_INTRO', payload: lastReport.intro });
         dispatch({ type: 'SET_RESULTS', payload: lastReport.results });
       }
-      setLoadSuccess(
-        `Added ${added} job${added === 1 ? '' : 's'}${lastReport ? ' and last results' : ''} to this device!`
-      );
+      setLoadSuccess(`Added ${added} job${added === 1 ? '' : 's'} to your saved list!`);
       setLoadCode('');
     } catch {
       setError('Code not found or expired. Check and try again.');
