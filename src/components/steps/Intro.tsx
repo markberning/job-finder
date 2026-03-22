@@ -40,6 +40,13 @@ export function Intro() {
         </p>
       </div>
 
+      <button
+        onClick={() => dispatch({ type: 'SET_SCREEN', payload: 'saved' })}
+        className="w-full px-4 py-2.5 rounded-lg border border-dashed border-indigo-300 text-indigo-600 font-medium text-sm hover:bg-indigo-50 transition-colors text-center"
+      >
+        Have a share code? Tap here to enter it
+      </button>
+
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1">
           What's your name? <span className="text-red-400">*</span>
