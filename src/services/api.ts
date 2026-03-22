@@ -68,7 +68,7 @@ Return ONLY valid JSON (no markdown, no explanation) in this exact format:
 [
   {
     "id": "unique-id",
-    "type": "multiple-choice" | "true-false" | "checkboxes" | "scale" | "short-answer",
+    "type": "checkboxes" | "true-false" | "scale" | "short-answer",
     "question": "The question text",
     "options": ["Option 1", "Option 2"],
     "scaleLabels": { "low": "Left label", "high": "Right label" }
@@ -76,12 +76,12 @@ Return ONLY valid JSON (no markdown, no explanation) in this exact format:
 ]
 
 Notes:
-- "options" is required for "multiple-choice" and "checkboxes" types (provide 3-5 options)
+- "options" is required for "checkboxes" type (provide 3-5 options). Users can select one OR multiple.
 - "scaleLabels" is required for "scale" type
 - "options" and "scaleLabels" should be omitted for other types
-- Use "true-false" sparingly — multiple-choice and checkboxes are more engaging
+- Use "true-false" sparingly
 - Each question needs a unique "id" (use descriptive kebab-case like "patient-interaction-pref")
-- CRITICAL: Default to "checkboxes" for most questions. Use "multiple-choice" ONLY when answers are strictly mutually exclusive (e.g., "morning person or night owl?"). If someone could reasonably pick 2+ answers — like work environments, interests, skills, preferences — it MUST be "checkboxes". When in doubt, use "checkboxes".`;
+- NEVER use "multiple-choice". Always use "checkboxes" when presenting options — users should always be able to select more than one.`;
 
 const MORE_QUESTIONS_SYSTEM_PROMPT = `You are helping an entry-level job seeker discover specific roles they're qualified for.
 
@@ -94,13 +94,14 @@ Return ONLY valid JSON in the same format as before:
 [
   {
     "id": "unique-id",
-    "type": "multiple-choice" | "true-false" | "checkboxes" | "scale" | "short-answer",
+    "type": "checkboxes" | "true-false" | "scale" | "short-answer",
     "question": "The question text",
     "options": ["Option 1", "Option 2"],
     "scaleLabels": { "low": "Left label", "high": "Right label" }
   }
 ]
 
+NEVER use "multiple-choice". Always use "checkboxes" when presenting options — users should always be able to select more than one.
 Return [] (empty array) if you have enough information already.
 Don't repeat topics already covered. Make question IDs unique and different from previous ones.`;
 
