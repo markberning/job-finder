@@ -60,9 +60,9 @@ export function Intro() {
         )}
         <button
           onClick={() => dispatch({ type: 'SET_SCREEN', payload: 'saved' })}
-          className="text-sm text-stone-400 hover:text-stone-600 transition-colors"
+          className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-indigo-300 text-indigo-600 font-medium text-sm hover:bg-indigo-50 transition-colors text-center"
         >
-          Have a share code? Enter it here
+          Have a share code? Tap here to enter it
         </button>
       </div>
 
