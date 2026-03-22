@@ -81,7 +81,7 @@ Notes:
 - "options" and "scaleLabels" should be omitted for other types
 - Use "true-false" sparingly — multiple-choice and checkboxes are more engaging
 - Each question needs a unique "id" (use descriptive kebab-case like "patient-interaction-pref")
-- IMPORTANT: Use "checkboxes" (not "multiple-choice") when someone could reasonably pick more than one answer. For example, preferred work environments, interests, skills, or things they enjoy should almost always be checkboxes. Only use "multiple-choice" when the options are truly mutually exclusive (e.g., "Do you prefer mornings or evenings?").`;
+- CRITICAL: Default to "checkboxes" for most questions. Use "multiple-choice" ONLY when answers are strictly mutually exclusive (e.g., "morning person or night owl?"). If someone could reasonably pick 2+ answers — like work environments, interests, skills, preferences — it MUST be "checkboxes". When in doubt, use "checkboxes".`;
 
 const MORE_QUESTIONS_SYSTEM_PROMPT = `You are helping an entry-level job seeker discover specific roles they're qualified for.
 
