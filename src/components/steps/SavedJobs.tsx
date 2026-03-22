@@ -69,14 +69,16 @@ export function SavedJobs() {
       </div>
 
       {/* Load a share code */}
-      {/* Share code section — load or create */}
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 space-y-4">
-        {shareCode ? (
-          <div className="text-center space-y-3">
+      {/* Share code section — compact */}
+      {shareCode ? (
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 text-center space-y-2">
+          <div className="flex items-center justify-center gap-3">
             <p className="text-sm text-indigo-600">Your share code:</p>
-            <p className="text-3xl font-mono font-bold text-indigo-800 tracking-widest">
+            <p className="text-xl font-mono font-bold text-indigo-800 tracking-widest">
               {shareCode}
             </p>
+          </div>
+          <div className="flex items-center justify-center gap-2">
             <button
               onClick={() => {
                 const text = `Check out my saved jobs on Job Finder!\n\n1. Go to: ${getAppUrl()}\n2. Click "Have a share code?"\n3. Enter code: ${shareCode}`;
@@ -84,60 +86,56 @@ export function SavedJobs() {
                 setCopied(true);
                 setTimeout(() => setCopied(false), 3000);
               }}
-              className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+              className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors"
             >
-              {copied ? 'Copied!' : 'Copy link & code to share'}
+              {copied ? 'Copied!' : 'Copy link & code'}
             </button>
-            <p className="text-xs text-indigo-400">
-              Expires in 7 days
-            </p>
+            <span className="text-xs text-indigo-400">Expires in 7 days</span>
           </div>
-        ) : (
-          <>
-            {/* Load a code */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-indigo-800">Have a share code?</p>
-              <p className="text-xs text-indigo-500">If someone shared their saved jobs with you, enter the code here.</p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={loadCode}
-                  onChange={(e) => setLoadCode(e.target.value.toUpperCase())}
-                  placeholder="Enter code"
-                  maxLength={6}
-                  className="flex-1 px-4 py-2.5 rounded-lg border border-indigo-200 bg-white focus:border-primary focus:ring-2 focus:ring-primary-light outline-none transition-colors uppercase tracking-widest text-center font-mono text-lg"
-                />
-                <button
-                  onClick={handleLoadCode}
-                  disabled={loading || !loadCode.trim()}
-                  className="px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-40"
-                >
-                  {loading ? '...' : 'Load'}
-                </button>
-              </div>
-              {loadSuccess && (
-                <p className="text-sm text-green-600 font-medium">{loadSuccess}</p>
-              )}
+        </div>
+      ) : (
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 space-y-3">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <p className="text-xs text-indigo-600 mb-1">
+                Enter a share code to load saved jobs from another device
+              </p>
+              <input
+                type="text"
+                value={loadCode}
+                onChange={(e) => setLoadCode(e.target.value.toUpperCase())}
+                placeholder="Enter code"
+                maxLength={6}
+                className="w-full px-3 py-2 rounded-lg border border-indigo-200 bg-white focus:border-primary focus:ring-2 focus:ring-primary-light outline-none transition-colors uppercase tracking-widest text-center font-mono"
+              />
             </div>
-
-            {/* Create a code */}
-            {savedJobs.length > 0 && (
-              <div className="border-t border-indigo-200 pt-4 text-center">
-                <p className="text-sm text-indigo-700 mb-2">
-                  Want to view these saved jobs on another device?
-                </p>
-                <button
-                  onClick={handleShare}
-                  disabled={sharing}
-                  className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-40"
-                >
-                  {sharing ? 'Creating code...' : 'Get a share code'}
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+            <button
+              onClick={handleLoadCode}
+              disabled={loading || !loadCode.trim()}
+              className="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-40"
+            >
+              {loading ? '...' : 'Load'}
+            </button>
+          </div>
+          {loadSuccess && (
+            <p className="text-sm text-green-600 font-medium">{loadSuccess}</p>
+          )}
+          {savedJobs.length > 0 && (
+            <div className="flex items-center justify-between border-t border-indigo-200 pt-3">
+              <p className="text-xs text-indigo-600">
+                View these saves on another device?
+              </p>
+              <button
+                onClick={handleShare}
+                disabled={sharing}
+                className="px-4 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-40 shrink-0"
+              >
+                {sharing ? 'Creating...' : 'Get share code'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-500 text-center">{error}</p>
