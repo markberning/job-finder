@@ -84,11 +84,17 @@ function formReducer(state: FormState, action: FormAction): FormState {
           },
         },
       };
-    case 'SET_RESULTS':
+    case 'SET_RESULTS': {
+      const newResults = action.payload as AIJobSuggestion[];
+      const newLastReport = newResults.length > 0
+        ? { intro: state.data.intro, results: newResults }
+        : state.lastReport;
       return {
         ...state,
-        data: { ...state.data, results: action.payload as AIJobSuggestion[] },
+        data: { ...state.data, results: newResults },
+        lastReport: newLastReport,
       };
+    }
     case 'SET_SCREEN':
       return { ...state, currentScreen: action.payload as AppScreen };
     case 'SET_LOADING':
