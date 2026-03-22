@@ -69,20 +69,18 @@ Return ONLY valid JSON (no markdown, no explanation) in this exact format:
 [
   {
     "id": "unique-id",
-    "type": "checkboxes" | "true-false" | "scale" | "short-answer",
+    "type": "checkboxes" | "short-answer",
     "question": "The question text",
-    "options": ["Option 1", "Option 2"],
-    "scaleLabels": { "low": "Left label", "high": "Right label" }
+    "options": ["Option 1", "Option 2"]
   }
 ]
 
 Notes:
+- Only use "checkboxes" or "short-answer" types. No other types.
 - "options" is required for "checkboxes" type (provide 3-5 options). Users can select one OR multiple.
-- "scaleLabels" is required for "scale" type
-- "options" and "scaleLabels" should be omitted for other types
-- Use "true-false" sparingly
+- "options" should be omitted for "short-answer" type
 - Each question needs a unique "id" (use descriptive kebab-case like "patient-interaction-pref")
-- NEVER use "multiple-choice". Always use "checkboxes" when presenting options — users should always be able to select more than one.`;
+- Use mostly "checkboxes" questions with 1-2 "short-answer" questions mixed in for variety.`;
 
 const MORE_QUESTIONS_SYSTEM_PROMPT = `You are helping an entry-level job seeker discover specific roles they're qualified for.
 
@@ -91,18 +89,17 @@ They've already answered some questions. Based on their profile AND their previo
 2. If yes, generate 2-3 more targeted follow-up questions.
 3. If you already have enough to make great recommendations, return an empty array.
 
-Return ONLY valid JSON in the same format as before:
+Return ONLY valid JSON in the same format:
 [
   {
     "id": "unique-id",
-    "type": "checkboxes" | "true-false" | "scale" | "short-answer",
+    "type": "checkboxes" | "short-answer",
     "question": "The question text",
-    "options": ["Option 1", "Option 2"],
-    "scaleLabels": { "low": "Left label", "high": "Right label" }
+    "options": ["Option 1", "Option 2"]
   }
 ]
 
-NEVER use "multiple-choice". Always use "checkboxes" when presenting options — users should always be able to select more than one.
+Only use "checkboxes" or "short-answer" types. No other types.
 Return [] (empty array) if you have enough information already.
 Don't repeat topics already covered. Make question IDs unique and different from previous ones.`;
 
@@ -301,11 +298,19 @@ interface SavedJobForShare {
   location: string;
 }
 
-export async function createShareCode(jobs: SavedJobForShare[]): Promise<string> {
+interface LastReportForShare {
+  intro: IntroData;
+  results: AIJobSuggestion[];
+}
+
+export async function createShareCode(
+  jobs: SavedJobForShare[],
+  lastReport?: LastReportForShare | null
+): Promise<string> {
   const res = await fetch(`${API_BASE}/share`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jobs }),
+    body: JSON.stringify({ jobs, lastReport }),
   });
 
   if (!res.ok) throw new Error('Failed to create share code');
@@ -313,7 +318,10 @@ export async function createShareCode(jobs: SavedJobForShare[]): Promise<string>
   return data.code;
 }
 
-export async function loadShareCode(code: string): Promise<SavedJobForShare[]> {
+export async function loadShareCode(code: string): Promise<{
+  jobs: SavedJobForShare[];
+  lastReport: LastReportForShare | null;
+}> {
   const res = await fetch(`${API_BASE}/share/${code.toUpperCase()}`);
 
   if (!res.ok) {
@@ -322,5 +330,5 @@ export async function loadShareCode(code: string): Promise<SavedJobForShare[]> {
   }
 
   const data = await res.json();
-  return data.jobs;
+  return { jobs: data.jobs, lastReport: data.lastReport };
 }

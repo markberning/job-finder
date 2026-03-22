@@ -57,7 +57,7 @@ app.post('/api/share', async (req, res) => {
   }
 
   try {
-    const { jobs } = req.body;
+    const { jobs, lastReport } = req.body;
     if (!jobs || !Array.isArray(jobs) || jobs.length === 0) {
       res.status(400).json({ error: 'No jobs to share' });
       return;
@@ -67,7 +67,8 @@ app.post('/api/share', async (req, res) => {
     const code = crypto.randomBytes(3).toString('hex').toUpperCase();
 
     // Store with 7-day expiration
-    await redis.set(`share:${code}`, JSON.stringify(jobs), { ex: 60 * 60 * 24 * 7 });
+    const payload = { jobs, lastReport: lastReport || null };
+    await redis.set(`share:${code}`, JSON.stringify(payload), { ex: 60 * 60 * 24 * 7 });
 
     res.json({ code });
   } catch (error) {
@@ -93,8 +94,14 @@ app.get('/api/share/:code', async (req, res) => {
     }
 
     // data might already be parsed by @upstash/redis
-    const jobs = typeof data === 'string' ? JSON.parse(data) : data;
-    res.json({ jobs });
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+
+    // Support both old format (plain array) and new format ({ jobs, lastReport })
+    if (Array.isArray(parsed)) {
+      res.json({ jobs: parsed, lastReport: null });
+    } else {
+      res.json({ jobs: parsed.jobs, lastReport: parsed.lastReport || null });
+    }
   } catch (error) {
     console.error('Load share error:', error);
     res.status(500).json({ error: 'Failed to load shared jobs' });

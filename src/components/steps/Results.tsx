@@ -142,6 +142,9 @@ export function Results() {
         <p className="text-stone-500 text-lg">
           Here are job titles that match your background.
         </p>
+        <p className="text-stone-400 text-sm mt-2">
+          Tap a job title you like, click the search links to find openings, and save the ones you want to come back to.
+        </p>
       </div>
 
       {/* Explore further callout */}
@@ -363,20 +366,31 @@ function JobCard({
   const links = buildSearchLinks(job.title, location);
   const { saveJob, removeJob, isJobSaved } = useSavedJobs();
   const saved = isJobSaved(job.title);
+  const [justSaved, setJustSaved] = useState(false);
+
+  function handleSave() {
+    if (saved) {
+      removeJob(job.title);
+    } else {
+      saveJob(job, location);
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 1500);
+    }
+  }
 
   return (
-    <div className={`rounded-xl border p-5 space-y-3 ${variantStyles[variant]}`}>
+    <div className={`rounded-xl border p-5 space-y-3 transition-all ${variantStyles[variant]} ${justSaved ? 'ring-2 ring-primary/30' : ''}`}>
       <div className="flex justify-between items-start gap-3">
         <h3 className="font-semibold text-stone-800 text-lg">{job.title}</h3>
         <button
-          onClick={() => saved ? removeJob(job.title) : saveJob(job, location)}
-          className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+          onClick={handleSave}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
             saved
               ? 'bg-primary text-white hover:bg-primary-dark'
               : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
-          }`}
+          } ${justSaved ? 'scale-110' : ''}`}
         >
-          {saved ? 'Saved' : 'Save'}
+          {justSaved ? 'Saved!' : saved ? 'Saved' : 'Save'}
         </button>
       </div>
       <p className="text-sm text-stone-500">{job.whyFit}</p>
@@ -386,7 +400,7 @@ function JobCard({
             href={links.indeed}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-medium"
+            className="text-sm px-4 py-2 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-medium"
           >
             Indeed
           </a>
@@ -394,7 +408,7 @@ function JobCard({
             href={links.google}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs px-3 py-1.5 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors font-medium"
+            className="text-sm px-4 py-2 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors font-medium"
           >
             Google Jobs
           </a>
@@ -402,7 +416,7 @@ function JobCard({
             href={links.linkedin}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs px-3 py-1.5 rounded-full bg-sky-100 text-sky-700 hover:bg-sky-200 transition-colors font-medium"
+            className="text-sm px-4 py-2 rounded-full bg-sky-100 text-sky-700 hover:bg-sky-200 transition-colors font-medium"
           >
             LinkedIn
           </a>

@@ -22,7 +22,7 @@ export function SavedJobs() {
     setSharing(true);
     setError('');
     try {
-      const code = await createShareCode(savedJobs);
+      const code = await createShareCode(savedJobs, state.lastReport);
       setShareCode(code);
     } catch {
       setError('Failed to create share code. Try again.');
@@ -37,7 +37,7 @@ export function SavedJobs() {
     setError('');
     setLoadSuccess('');
     try {
-      const jobs = await loadShareCode(loadCode.trim());
+      const { jobs, lastReport } = await loadShareCode(loadCode.trim());
       let added = 0;
       for (const job of jobs) {
         saveJob(
@@ -46,7 +46,14 @@ export function SavedJobs() {
         );
         added++;
       }
-      setLoadSuccess(`Added ${added} job${added === 1 ? '' : 's'} to your saved list!`);
+      // Restore last report if included
+      if (lastReport) {
+        dispatch({ type: 'UPDATE_INTRO', payload: lastReport.intro });
+        dispatch({ type: 'SET_RESULTS', payload: lastReport.results });
+      }
+      setLoadSuccess(
+        `Added ${added} job${added === 1 ? '' : 's'}${lastReport ? ' and last results' : ''} to this device!`
+      );
       setLoadCode('');
     } catch {
       setError('Code not found or expired. Check and try again.');
