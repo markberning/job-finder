@@ -1,7 +1,8 @@
 import type { IntroData, AIQuestion, AIJobSuggestion, QuizAnswers } from '../types';
 import { EDUCATION_LABELS } from '../types';
 
-const API_URL = import.meta.env.DEV ? 'http://localhost:3001/api/chat' : '/api/chat';
+const API_BASE = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
+const API_URL = `${API_BASE}/chat`;
 
 function buildProfileSummary(intro: IntroData): string {
   const edu = intro.educationLevel ? EDUCATION_LABELS[intro.educationLevel] : 'Not specified';
@@ -129,6 +130,79 @@ Guidelines:
 - Be encouraging — these are young people starting their careers
 - Order by relevance (best fits first within each category)`;
 
+const CAREER_PATHS_SYSTEM_PROMPT = `You are a career advisor. Given a job seeker's education/training, identify 6-8 distinct CAREER PATH CATEGORIES their degree or training qualifies them for.
+
+These should be broad career directions, NOT specific job titles. Each path represents a whole category of jobs they could explore.
+
+For example, for a Criminal Justice degree:
+- "Compliance & Regulation" — corporate compliance, regulatory affairs
+- "Victim Services & Advocacy" — victim advocacy, crisis counseling
+- "Corporate Security" — loss prevention, security management
+- "Legal Support" — paralegal, legal research
+- "Investigations" — fraud investigation, private investigation
+- "Corrections & Rehabilitation" — probation, reentry programs
+- "Juvenile & Family Services" — youth counseling, family court
+
+Return ONLY valid JSON in this exact format:
+[
+  {
+    "id": "kebab-case-id",
+    "name": "Career Path Name",
+    "description": "One sentence explaining what kinds of roles fall under this path"
+  }
+]
+
+Guidelines:
+- 6-8 paths
+- Focus on what their DEGREE/TRAINING qualifies them for
+- Include their dream job area as one path, but also paths they likely haven't considered
+- Make path names clear and concise (2-4 words)
+- Descriptions should be brief and enticing`;
+
+const PATH_JOBS_SYSTEM_PROMPT = `You are a career advisor. A job seeker has chosen a specific career path to explore. Suggest 6-10 specific entry-level job titles within that path.
+
+Return ONLY valid JSON in this exact format:
+[
+  {
+    "title": "Specific Job Title",
+    "whyFit": "Brief explanation of why their background makes them a fit for this role",
+    "isUnexpected": true
+  }
+]
+
+Guidelines:
+- Use actual job titles that appear on Indeed/LinkedIn
+- Focus on entry-level / early-career positions
+- Explain how their education/training connects to each role
+- Be encouraging — these are young people exploring their options
+- ALL should be marked isUnexpected: true`;
+
+import type { CareerPath } from '../types';
+
+export async function generateCareerPaths(intro: IntroData): Promise<CareerPath[]> {
+  const profile = buildProfileSummary(intro);
+  const training = intro.fieldOfStudy || intro.dreamJob;
+  const response = await callAPI(
+    CAREER_PATHS_SYSTEM_PROMPT,
+    `Profile:\n${profile}\n\nTheir education/training: ${training}\n\nIdentify the career path categories their ${training} background qualifies them for.`
+  );
+  return parseJSON<CareerPath[]>(response);
+}
+
+export async function generatePathJobs(
+  intro: IntroData,
+  path: CareerPath,
+  previousTitles: string[]
+): Promise<AIJobSuggestion[]> {
+  const profile = buildProfileSummary(intro);
+  const training = intro.fieldOfStudy || intro.dreamJob;
+  const response = await callAPI(
+    PATH_JOBS_SYSTEM_PROMPT,
+    `Profile:\n${profile}\n\nTheir education/training: ${training}\nChosen career path: ${path.name} — ${path.description}\n\nDo NOT suggest any of these titles (already shown): ${previousTitles.join(', ')}\n\nSuggest specific entry-level job titles within the "${path.name}" career path.`
+  );
+  return parseJSON<AIJobSuggestion[]>(response);
+}
+
 export async function generateQuestions(intro: IntroData): Promise<AIQuestion[]> {
   const profile = buildProfileSummary(intro);
   const response = await callAPI(
@@ -217,4 +291,36 @@ export function buildSearchLinks(
     google: `https://www.google.com/search?q=${q}+jobs+near+${loc}&ibp=htl;jobs`,
     linkedin: `https://www.linkedin.com/jobs/search/?keywords=${q}&location=${loc}`,
   };
+}
+
+// Share codes
+interface SavedJobForShare {
+  title: string;
+  whyFit: string;
+  isUnexpected: boolean;
+  location: string;
+}
+
+export async function createShareCode(jobs: SavedJobForShare[]): Promise<string> {
+  const res = await fetch(`${API_BASE}/share`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jobs }),
+  });
+
+  if (!res.ok) throw new Error('Failed to create share code');
+  const data = await res.json();
+  return data.code;
+}
+
+export async function loadShareCode(code: string): Promise<SavedJobForShare[]> {
+  const res = await fetch(`${API_BASE}/share/${code.toUpperCase()}`);
+
+  if (!res.ok) {
+    if (res.status === 404) throw new Error('Code not found or expired');
+    throw new Error('Failed to load shared jobs');
+  }
+
+  const data = await res.json();
+  return data.jobs;
 }

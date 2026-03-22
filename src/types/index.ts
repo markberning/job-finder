@@ -34,6 +34,12 @@ export interface AIJobSuggestion {
   isUnexpected: boolean;
 }
 
+export interface CareerPath {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface IntroData {
   name: string;
   educationLevel: EducationLevel;
@@ -53,7 +59,7 @@ export interface FormData {
   results: AIJobSuggestion[];
 }
 
-export type AppScreen = 'intro' | 'questions' | 'results';
+export type AppScreen = 'intro' | 'questions' | 'results' | 'saved';
 
 export type FormAction =
   | { type: 'UPDATE_INTRO'; payload: Partial<IntroData> }
@@ -63,4 +69,5 @@ export type FormAction =
   | { type: 'SET_RESULTS'; payload: AIJobSuggestion[] }
   | { type: 'SET_SCREEN'; payload: AppScreen }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'CLEAR_ANSWERS' };
+  | { type: 'CLEAR_ANSWERS' }
+  | { type: 'LOAD_LAST_REPORT' };

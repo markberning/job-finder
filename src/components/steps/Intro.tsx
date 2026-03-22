@@ -1,4 +1,5 @@
 import { useFormContext } from '../../context/FormContext';
+import { useSavedJobs } from '../../context/SavedJobsContext';
 import { EDUCATION_LABELS } from '../../types';
 import type { EducationLevel } from '../../types';
 import { StepNavigation } from '../ui/StepNavigation';
@@ -6,6 +7,7 @@ import { generateQuestions } from '../../services/api';
 
 export function Intro() {
   const { state, dispatch } = useFormContext();
+  const { savedJobs } = useSavedJobs();
   const { name, educationLevel, fieldOfStudy, dreamJob, location } = state.data.intro;
 
   const isValid =
@@ -37,6 +39,31 @@ export function Intro() {
         <p className="text-stone-500 text-lg">
           Tell us a little about yourself and what you're looking for.
         </p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {state.lastReport && (
+          <button
+            onClick={() => dispatch({ type: 'LOAD_LAST_REPORT' })}
+            className="w-full px-5 py-4 rounded-xl bg-stone-100 border border-stone-200 text-stone-700 font-medium hover:bg-stone-200 transition-colors text-center"
+          >
+            View your last results ({state.lastReport.intro.dreamJob})
+          </button>
+        )}
+        {savedJobs.length > 0 && (
+          <button
+            onClick={() => dispatch({ type: 'SET_SCREEN', payload: 'saved' })}
+            className="w-full px-5 py-4 rounded-xl bg-primary/10 border border-primary/20 text-primary font-medium hover:bg-primary/15 transition-colors text-center"
+          >
+            View your {savedJobs.length} saved job{savedJobs.length === 1 ? '' : 's'}
+          </button>
+        )}
+        <button
+          onClick={() => dispatch({ type: 'SET_SCREEN', payload: 'saved' })}
+          className="text-sm text-stone-400 hover:text-stone-600 transition-colors"
+        >
+          Have a share code? Enter it here
+        </button>
       </div>
 
       <div>

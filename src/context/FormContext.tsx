@@ -1,10 +1,35 @@
-import { createContext, useContext, useReducer, type ReactNode } from 'react';
-import type { FormData, FormAction, AppScreen, AIQuestion, AIJobSuggestion } from '../types';
+import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import type { FormData, FormAction, AppScreen, AIQuestion, AIJobSuggestion, IntroData } from '../types';
+
+const LAST_REPORT_KEY = 'job-finder-last-report';
+
+interface LastReport {
+  intro: IntroData;
+  results: AIJobSuggestion[];
+}
+
+function loadLastReport(): LastReport | null {
+  try {
+    const stored = localStorage.getItem(LAST_REPORT_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLastReport(intro: IntroData, results: AIJobSuggestion[]) {
+  try {
+    localStorage.setItem(LAST_REPORT_KEY, JSON.stringify({ intro, results }));
+  } catch {
+    // ignore storage errors
+  }
+}
 
 interface FormState {
   data: FormData;
   currentScreen: AppScreen;
   loading: boolean;
+  lastReport: LastReport | null;
 }
 
 const initialState: FormState = {
@@ -22,6 +47,7 @@ const initialState: FormState = {
   },
   currentScreen: 'intro',
   loading: false,
+  lastReport: loadLastReport(),
 };
 
 function formReducer(state: FormState, action: FormAction): FormState {
@@ -72,6 +98,19 @@ function formReducer(state: FormState, action: FormAction): FormState {
         ...state,
         data: { ...state.data, answers: {}, aiQuestions: [], results: [] },
       };
+    case 'LOAD_LAST_REPORT': {
+      const report = state.lastReport;
+      if (!report) return state;
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          intro: report.intro,
+          results: report.results,
+        },
+        currentScreen: 'results',
+      };
+    }
     default:
       return state;
   }
@@ -84,6 +123,15 @@ const FormContext = createContext<{
 
 export function FormProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(formReducer, initialState);
+
+  // Save to localStorage whenever results change
+  useEffect(() => {
+    if (state.data.results.length > 0) {
+      saveLastReport(state.data.intro, state.data.results);
+      // Also update lastReport in state so it's available immediately
+    }
+  }, [state.data.results, state.data.intro]);
+
   return (
     <FormContext.Provider value={{ state, dispatch }}>
       {children}
